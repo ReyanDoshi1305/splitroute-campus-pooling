@@ -98,11 +98,11 @@ Visit the URL shown in your terminal (usually `http://localhost:5173/`).
 ## 🎓 Viva / Presentation Cheat Sheet (For College Evaluation)
 
 * **Q: How does the application maintain state when a user books a ride?**  
-  * *Answer:* React's `useState` manages the live array of rides in memory. A React `useEffect` hook monitors changes and automatically serializes the data into browser `localStorage`, ensuring data persists even if the page refreshes.
+  * *Ans:* React's `useState` manages the live array of rides in memory. A React `useEffect` hook monitors changes and automatically serializes the data into browser `localStorage`, ensuring data persists even if the page refreshes.
 * **Q: How does the dynamic fare calculation work?**  
-  * *Answer:* Rather than hardcoding static prices, the app divides the total vehicle fare by the length of the `passengers` array plus the host, using `Math.ceil()` to avoid fractional currency issues.
+  * *Ans:* Rather than hardcoding static prices, the app divides the total vehicle fare by the length of the `passengers` array plus the host, using `Math.ceil()` to avoid fractional currency issues.
 * **Q: How does the application handle responsiveness?**  
-  * *Answer:* We use CSS Grid with `repeat(auto-fill, minmax(360px, 1fr))` and media queries to adapt the layout seamlessly from mobile screens to desktop monitors.
+  * *Ans:* We use CSS Grid with `repeat(auto-fill, minmax(360px, 1fr))` and media queries to adapt the layout seamlessly from mobile screens to desktop monitors.
 
 ---
 
