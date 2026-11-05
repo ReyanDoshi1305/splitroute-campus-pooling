@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SplitRoute – Campus Commute & Fare Pooling (Live Preview)</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./src/index.css">
+  
+  <!-- React & Babel Standalone for Instant Local Preview -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // --- ICONS ---
+    const CarIcon = ({ size = 20, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+        <circle cx="7" cy="17" r="2" /><path d="M9 17h6" /><circle cx="17" cy="17" r="2" />
+      </svg>
+    );
+
+    const ClockIcon = ({ size = 20 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+      </svg>
+    );
+
+    const UsersIcon = ({ size = 20 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    );
+
+    const ShieldCheckIcon = ({ size = 20, style = {} }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" /><path d="m9 12 2 2 4-4" />
+      </svg>
+    );
+
+    const PlusIcon = ({ size = 20 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 12h14" /><path d="M12 5v14" />
+      </svg>
+    );
+
+    const SearchIcon = ({ size = 20, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+      </svg>
+    );
+
+    const FilterIcon = ({ size = 20, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+      </svg>
+    );
+
+    const SparklesIcon = ({ size = 20, style = {} }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
+        <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
+      </svg>
+    );
+
+    const CheckCircleIcon = ({ size = 20, style = {} }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+      </svg>
+    );
+
+    const XIcon = ({ size = 20 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+      </svg>
+    );
+
+    const CalculatorIcon = ({ size = 20 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect width="16" height="20" x="4" y="2" rx="2" /><line x1="8" x2="16" y1="6" y2="6" /><line x1="16" x2="16" y1="14" y2="18" /><path d="M16 10h.01" /><path d="M12 10h.01" /><path d="M8 10h.01" /><path d="M12 14h.01" /><path d="M8 14h.01" /><path d="M12 18h.01" /><path d="M8 18h.01" />
+      </svg>
+    );
+
+    const LeafIcon = ({ size = 24 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+      </svg>
+    );
+
+    const WalletIcon = ({ size = 24 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" />
+      </svg>
+    );
+
+    const MapPinIcon = ({ size = 18, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+      </svg>
+    );
+
+    // --- SEED DATA ---
+    const POPULAR_LOCATIONS = [
+      "Central Metro Station (Gate 2)",
+      "North Hostel Complex",
+      "South Hostel Block B",
+      "City Railway Terminal",
+      "South Extension Circle",
+      "Main Campus (Engineering Block)",
+      "Main Campus (Auditorium)",
+      "Campus South Gate (Library)",
+      "City Center Tech Hub",
+      "Student Food Street / Market"
+    ];
+
+    const INITIAL_RIDES = [
+      {
+        id: "ride-1",
+        host: {
+          name: "Aman Sharma",
+          dept: "Computer Science, 3rd Yr",
+          email: "aman.s@campus.edu",
+          avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=160&q=80",
+          isVerified: true
+        },
+        origin: "Central Metro Station (Gate 2)",
+        destination: "Main Campus (Engineering Block)",
+        departureTime: "Today, 08:45 AM",
+        vehicleType: "Cab / Sedan",
+        totalFare: 320,
+        totalSeats: 4,
+        availableSeats: 2,
+        isWomenOnly: false,
+        pickupNotes: "Waiting by the cafe next to Gate 2. Uber Premier booked (White Dzire).",
+        passengers: [
+          { name: "Aman Sharma", email: "aman.s@campus.edu", isHost: true },
+          { name: "Rohit Verma", email: "rohit.v@campus.edu", isHost: false }
+        ],
+        status: "ACTIVE"
+      },
+      {
+        id: "ride-2",
+        host: {
+          name: "Sneha Patel",
+          dept: "Biotech Engineering, 2nd Yr",
+          email: "sneha.p@campus.edu",
+          avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=80",
+          isVerified: true
+        },
+        origin: "North Hostel Complex",
+        destination: "City Center Tech Hub",
+        departureTime: "Today, 09:15 AM",
+        vehicleType: "Auto-Rickshaw",
+        totalFare: 160,
+        totalSeats: 3,
+        availableSeats: 1,
+        isWomenOnly: true,
+        pickupNotes: "Outside Girls Hostel Gate 1. Split equally among 3 people.",
+        passengers: [
+          { name: "Sneha Patel", email: "sneha.p@campus.edu", isHost: true },
+          { name: "Ananya Iyer", email: "ananya.i@campus.edu", isHost: false }
+        ],
+        status: "ACTIVE"
+      },
+      {
+        id: "ride-3",
+        host: {
+          name: "Devansh Mehta",
+          dept: "Mechanical Dept, 4th Yr",
+          email: "devansh.m@campus.edu",
+          avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=160&q=80",
+          isVerified: true
+        },
+        origin: "City Railway Terminal",
+        destination: "Campus South Gate (Library)",
+        departureTime: "Today, 10:00 AM",
+        vehicleType: "Cab / Sedan",
+        totalFare: 400,
+        totalSeats: 4,
+        availableSeats: 3,
+        isWomenOnly: false,
+        pickupNotes: "Pickup near Platform 1 prepaid taxi lane. Have two medium luggage bags.",
+        passengers: [
+          { name: "Devansh Mehta", email: "devansh.m@campus.edu", isHost: true }
+        ],
+        status: "ACTIVE"
+      },
+      {
+        id: "ride-4",
+        host: {
+          name: "Rhea Sen",
+          dept: "Design & Media, 3rd Yr",
+          email: "rhea.s@campus.edu",
+          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&q=80",
+          isVerified: true
+        },
+        origin: "South Extension Circle",
+        destination: "Main Campus (Auditorium)",
+        departureTime: "Today, 11:30 AM",
+        vehicleType: "Personal Car",
+        totalFare: 240,
+        totalSeats: 3,
+        availableSeats: 0,
+        isWomenOnly: true,
+        pickupNotes: "Hyundai i20. Driving myself, just splitting fuel cost with 3 fellow students.",
+        passengers: [
+          { name: "Rhea Sen", email: "rhea.s@campus.edu", isHost: true },
+          { name: "Tanvi Roy", email: "tanvi.r@campus.edu", isHost: false },
+          { name: "Simran Kaur", email: "simran.k@campus.edu", isHost: false }
+        ],
+        status: "FULL"
+      }
+    ];
+
+    // --- MAIN APP COMPONENT ---
+    function App() {
+      const [currentUser] = useState({
+        name: "Rohan Mehra",
+        dept: "Computer Science, 2nd Yr",
+        email: "rohan.m@campus.edu",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
+        isVerified: true
+      });
+
+      const [rides, setRides] = useState(() => {
+        try {
+          const saved = localStorage.getItem("splitroute_preview_rides");
+          if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        return INITIAL_RIDES;
+      });
+
+      useEffect(() => {
+        try {
+          localStorage.setItem("splitroute_preview_rides", JSON.stringify(rides));
+        } catch (e) {}
+      }, [rides]);
+
+      const [activeTab, setActiveTab] = useState("feed");
+      const [isCreateOpen, setIsCreateOpen] = useState(false);
+      const [isCalcOpen, setIsCalcOpen] = useState(false);
+      const [joiningRide, setJoiningRide] = useState(null);
+      const [toast, setToast] = useState(null);
+
+      const [searchQuery, setSearchQuery] = useState("");
+      const [selectedLocation, setSelectedLocation] = useState("");
+      const [vehicleFilter, setVehicleFilter] = useState("ALL");
+      const [isWomenOnlyFilter, setIsWomenOnlyFilter] = useState(false);
+
+      const showToast = (message) => {
+        setToast(message);
+        setTimeout(() => setToast(null), 3500);
+      };
+
+      const handleCreateRide = (newRide) => {
+        setRides([newRide, ...rides]);
+        showToast("🎉 Ride pool published successfully!");
+      };
+
+      const handleJoinRide = (rideId) => {
+        setRides(rides.map(r => {
+          if (r.id !== rideId || r.availableSeats <= 0) return r;
+          const updatedPassengers = [...r.passengers, { name: currentUser.name, email: currentUser.email, isHost: false }];
+          const updatedSeats = r.availableSeats - 1;
+          return {
+            ...r,
+            passengers: updatedPassengers,
+            availableSeats: updatedSeats,
+            status: updatedSeats === 0 ? "FULL" : "ACTIVE"
+          };
+        }));
+        showToast("Seat reserved! Check 'My Rides' to view details.");
+      };
+
+      const handleLeaveRide = (rideId) => {
+        setRides(rides.map(r => {
+          if (r.id !== rideId) return r;
+          return {
+            ...r,
+            passengers: r.passengers.filter(p => p.email !== currentUser.email),
+            availableSeats: r.availableSeats + 1,
+            status: "ACTIVE"
+          };
+        }));
+        showToast("You have left the ride pool.");
+      };
+
+      const handleCancelRide = (rideId) => {
+        if (confirm("Cancel this ride pool?")) {
+          setRides(rides.filter(r => r.id !== rideId));
+          showToast("Ride pool cancelled.");
+        }
+      };
+
+      const filteredRides = useMemo(() => {
+        return rides.filter(ride => {
+          const q = searchQuery.toLowerCase().trim();
+          const matchesSearch = !q || ride.origin.toLowerCase().includes(q) || ride.destination.toLowerCase().includes(q) || ride.host.name.toLowerCase().includes(q);
+          const matchesLocation = !selectedLocation || ride.origin === selectedLocation || ride.destination === selectedLocation;
+          const matchesVehicle = vehicleFilter === "ALL" || ride.vehicleType === vehicleFilter;
+          const matchesWomen = !isWomenOnlyFilter || ride.isWomenOnly;
+          return matchesSearch && matchesLocation && matchesVehicle && matchesWomen;
+        });
+      }, [rides, searchQuery, selectedLocation, vehicleFilter, isWomenOnlyFilter]);
+
+      const myRidesCount = rides.filter(r => r.host.email === currentUser.email || r.passengers.some(p => p.email === currentUser.email)).length;
+      const activePoolsCount = rides.filter(r => r.availableSeats > 0).length;
+
+      return (
+        <div>
+          {/* Header */}
+          <header className="navbar">
+            <div className="container">
+              <div className="nav-wrapper">
+                <div className="brand-logo" onClick={() => setActiveTab("feed")}>
+                  <div className="brand-icon-box"><CarIcon size={22} /></div>
+                  <div className="brand-text">
+                    <h1>SplitRoute</h1>
+                    <span>Campus Commute Pool</span>
+                  </div>
+                </div>
+
+                <nav className="nav-tabs">
+                  <button className={`nav-tab-btn ${activeTab === "feed" ? "active" : ""}`} onClick={() => setActiveTab("feed")}>
+                    <CarIcon size={16} /> <span className="label">Find Rides</span>
+                  </button>
+                  <button className={`nav-tab-btn ${activeTab === "my-rides" ? "active" : ""}`} onClick={() => setActiveTab("my-rides")}>
+                    <UsersIcon size={16} /> <span className="label">My Rides</span>
+                    {myRidesCount > 0 && <span className="badge-count">{myRidesCount}</span>}
+                  </button>
+                  <button className="nav-tab-btn" onClick={() => setIsCalcOpen(true)}>
+                    <CalculatorIcon size={16} /> <span className="label">Split Calc</span>
+                  </button>
+                </nav>
+
+                <div className="nav-actions">
+                  <button className="btn btn-primary btn-sm" onClick={() => setIsCreateOpen(true)}>
+                    <PlusIcon size={16} /> <span>Offer Ride</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Feed View */}
+          {activeTab === "feed" ? (
+            <main>
+              <section className="hero-stats">
+                <div className="container">
+                  <div className="hero-header">
+                    <div className="hero-pill"><SparklesIcon size={14} /> <span>Zero-Cost Solo Rides Are Over</span></div>
+                    <h2>Split Campus Cabs, Autos & Commutes</h2>
+                    <p>Connect with verified students heading your way. Share seats, cut transit costs by up to 75%, and travel safely together.</p>
+                  </div>
+
+                  <div className="stats-grid">
+                    <div className="stat-card">
+                      <div className="stat-icon green"><WalletIcon size={24} /></div>
+                      <div className="stat-info"><h3>₹52,400</h3><p>Total Student Money Saved</p></div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-icon blue"><CarIcon size={24} /></div>
+                      <div className="stat-info"><h3>{activePoolsCount} Pools</h3><p>Active Rides Open Today</p></div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-icon cyan"><LeafIcon size={24} /></div>
+                      <div className="stat-info"><h3>340 kg</h3><p>Campus CO₂ Prevented</p></div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-icon yellow"><UsersIcon size={24} /></div>
+                      <div className="stat-info"><h3>100%</h3><p>Verified Campus Community</p></div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <div className="container">
+                {/* Filters */}
+                <div className="filter-card">
+                  <div className="filter-grid">
+                    <div className="input-group">
+                      <label>Search Route / Host</label>
+                      <div className="input-with-icon">
+                        <SearchIcon size={18} className="input-icon" />
+                        <input type="text" className="input-field" placeholder="Search Metro, Library, Host..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                      </div>
+                    </div>
+
+                    <div className="input-group">
+                      <label>Filter by Location</label>
+                      <div className="input-with-icon">
+                        <MapPinIcon size={18} className="input-icon" />
+                        <select className="select-field" value={selectedLocation} onChange={e => setSelectedLocation(e.target.value)}>
+                          <option value="">All Locations</option>
+                          {POPULAR_LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="input-group">
+                      <label>Vehicle Type</label>
+                      <div className="input-with-icon">
+                        <FilterIcon size={18} className="input-icon" />
+                        <select className="select-field" value={vehicleFilter} onChange={e => setVehicleFilter(e.target.value)}>
+                          <option value="ALL">All Vehicles</option>
+                          <option value="Cab / Sedan">Cab / Sedan</option>
+                          <option value="Auto-Rickshaw">Auto-Rickshaw</option>
+                          <option value="Personal Car">Personal Car</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="input-group">
+                      <label>Safety Filter</label>
+                      <div className={`women-toggle ${isWomenOnlyFilter ? "active" : ""}`} onClick={() => setIsWomenOnlyFilter(!isWomenOnlyFilter)}>
+                        <ShieldCheckIcon size={18} /> <span>Women-Only</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="feed-header">
+                  <h3>{isWomenOnlyFilter ? "🌸 Women-Only Pools" : "🚗 Available Campus Pools"} ({filteredRides.length})</h3>
+                </div>
+
+                <div className="rides-grid">
+                  {filteredRides.map(ride => {
+                    const isHost = ride.host.email === currentUser.email;
+                    const isPassenger = ride.passengers.some(p => p.email === currentUser.email && !p.isHost);
+                    const perPerson = Math.ceil(ride.totalFare / ride.passengers.length);
+                    const potentialSplit = Math.ceil(ride.totalFare / (ride.passengers.length + 1));
+
+                    return (
+                      <div key={ride.id} className={`ride-card ${ride.isWomenOnly ? "women-only-card" : "standard-card"}`}>
+                        <div>
+                          <div className="card-top">
+                            <div className="host-profile">
+                              <img src={ride.host.avatar} className="host-avatar" alt="" />
+                              <div className="host-details">
+                                <h4>{ride.host.name} <CheckCircleIcon size={16} style={{ color: "var(--primary)" }} /></h4>
+                                <p>{ride.host.dept}</p>
+                              </div>
+                            </div>
+                            <div className="tags-cluster">
+                              {ride.isWomenOnly && <span className="pill-badge pill-women"><ShieldCheckIcon size={12} /> Women Only</span>}
+                              <span className="pill-badge pill-vehicle"><CarIcon size={12} /> {ride.vehicleType}</span>
+                            </div>
+                          </div>
+
+                          <div className="route-timeline">
+                            <div className="route-point">
+                              <span className="route-bullet"></span>
+                              <div className="route-label">From (Pickup)</div>
+                              <div className="route-value">{ride.origin}</div>
+                            </div>
+                            <div className="route-point">
+                              <span className="route-bullet end"></span>
+                              <div className="route-label">To (Drop)</div>
+                              <div className="route-value">{ride.destination}</div>
+                            </div>
+                          </div>
+
+                          <div className="ride-timing-strip">
+                            <span><ClockIcon size={16} /> {ride.departureTime}</span>
+                            <span>{ride.passengers.length} of {ride.totalSeats} seats taken</span>
+                          </div>
+
+                          {ride.pickupNotes && <div className="pickup-note">💬 "{ride.pickupNotes}"</div>}
+                        </div>
+
+                        <div className="card-bottom">
+                          <div className="fare-block">
+                            <span className="per-person-label">Est. Fare / Person</span>
+                            <div className="fare-amount">₹{perPerson}</div>
+                            <span className="fare-total-sub">Total: ₹{ride.totalFare}</span>
+                          </div>
+
+                          <div className="seat-status-box">
+                            <span className={`seat-pill ${ride.availableSeats > 0 ? "seat-available" : "seat-full"}`}>
+                              {ride.availableSeats > 0 ? `${ride.availableSeats} seat${ride.availableSeats > 1 ? "s" : ""} left` : "Pool Full"}
+                            </span>
+
+                            {isHost ? (
+                              <button className="btn btn-secondary btn-sm" style={{ color: "var(--danger)" }} onClick={() => handleCancelRide(ride.id)}>Cancel</button>
+                            ) : isPassenger ? (
+                              <button className="btn btn-secondary btn-sm" style={{ color: "var(--warning)" }} onClick={() => handleLeaveRide(ride.id)}>Leave</button>
+                            ) : ride.availableSeats > 0 ? (
+                              <button className="btn btn-primary btn-sm" onClick={() => setJoiningRide(ride)}>Join (₹{potentialSplit})</button>
+                            ) : (
+                              <button className="btn btn-secondary btn-sm" disabled style={{ opacity: 0.5 }}>Full</button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </main>
+          ) : (
+            /* My Rides View */
+            <div className="container" style={{ paddingTop: "2rem" }}>
+              <div className="feed-header">
+                <h3>My Rides & Bookings</h3>
+              </div>
+              <div className="rides-grid">
+                {rides.filter(r => r.host.email === currentUser.email || r.passengers.some(p => p.email === currentUser.email)).map(ride => (
+                  <div key={ride.id} className="ride-card standard-card">
+                    <h4>{ride.origin} ➔ {ride.destination}</h4>
+                    <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Departs: {ride.departureTime} • {ride.vehicleType}</p>
+                    <div style={{ marginTop: "1rem" }}>
+                      {ride.host.email === currentUser.email ? (
+                        <button className="btn btn-secondary btn-sm" style={{ color: "var(--danger)" }} onClick={() => handleCancelRide(ride.id)}>Cancel My Hosted Pool</button>
+                      ) : (
+                        <button className="btn btn-secondary btn-sm" style={{ color: "var(--warning)" }} onClick={() => handleLeaveRide(ride.id)}>Leave Pool</button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Join Modal */}
+          {joiningRide && (
+            <div className="modal-overlay" onClick={() => setJoiningRide(null)}>
+              <div className="modal-container" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>Join Ride Pool</h3>
+                  <button className="modal-close-btn" onClick={() => setJoiningRide(null)}><XIcon size={18} /></button>
+                </div>
+                <div className="modal-body">
+                  <p style={{ marginBottom: "1rem" }}><strong>Route:</strong> {joiningRide.origin} ➔ {joiningRide.destination}</p>
+                  <div style={{ background: "var(--success-light)", padding: "1rem", borderRadius: "var(--radius-md)", marginBottom: "1rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span>Your Split:</span>
+                      <strong style={{ fontSize: "1.3rem", color: "#166534" }}>₹{Math.ceil(joiningRide.totalFare / (joiningRide.passengers.length + 1))}</strong>
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "#15803d" }}>Solo fare would be ₹{joiningRide.totalFare}. You save 70%+!</div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-secondary" onClick={() => setJoiningRide(null)}>Cancel</button>
+                  <button className="btn btn-primary" onClick={() => { handleJoinRide(joiningRide.id); setJoiningRide(null); }}>Confirm & Reserve Seat</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Create Modal */}
+          {isCreateOpen && (
+            <div className="modal-overlay" onClick={() => setIsCreateOpen(false)}>
+              <div className="modal-container" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>Offer a Campus Ride Pool</h3>
+                  <button className="modal-close-btn" onClick={() => setIsCreateOpen(false)}><XIcon size={18} /></button>
+                </div>
+                <div className="modal-body">
+                  <form onSubmit={e => {
+                    e.preventDefault();
+                    const origin = e.target.origin.value;
+                    const destination = e.target.destination.value;
+                    const fare = Number(e.target.fare.value) || 300;
+                    const seats = Number(e.target.seats.value) || 4;
+                    const vehicle = e.target.vehicle.value;
+                    const womenOnly = e.target.womenOnly.checked;
+
+                    handleCreateRide({
+                      id: "ride-" + Date.now(),
+                      host: currentUser,
+                      origin,
+                      destination,
+                      departureTime: "Today, 10:15 AM",
+                      vehicleType: vehicle,
+                      totalFare: fare,
+                      totalSeats: seats,
+                      availableSeats: seats - 1,
+                      isWomenOnly: womenOnly,
+                      pickupNotes: "Pickup outside main entrance.",
+                      passengers: [{ name: currentUser.name, email: currentUser.email, isHost: true }],
+                      status: "ACTIVE"
+                    });
+                    setIsCreateOpen(false);
+                  }}>
+                    <div className="input-group" style={{ marginBottom: "0.85rem" }}>
+                      <label>Pickup Location</label>
+                      <select name="origin" className="select-field" style={{ paddingLeft: "1rem" }}>
+                        {POPULAR_LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
+                      </select>
+                    </div>
+
+                    <div className="input-group" style={{ marginBottom: "0.85rem" }}>
+                      <label>Drop Location</label>
+                      <select name="destination" className="select-field" style={{ paddingLeft: "1rem" }} defaultValue={POPULAR_LOCATIONS[5]}>
+                        {POPULAR_LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
+                      </select>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "0.85rem" }}>
+                      <div className="input-group">
+                        <label>Total Fare (₹)</label>
+                        <input name="fare" type="number" defaultValue="300" className="input-field" style={{ paddingLeft: "1rem" }} required />
+                      </div>
+                      <div className="input-group">
+                        <label>Total Seats</label>
+                        <select name="seats" className="select-field" style={{ paddingLeft: "1rem" }} defaultValue="4">
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                          <option value="4">4</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="input-group" style={{ marginBottom: "0.85rem" }}>
+                      <label>Vehicle Type</label>
+                      <select name="vehicle" className="select-field" style={{ paddingLeft: "1rem" }}>
+                        <option value="Cab / Sedan">Cab / Sedan</option>
+                        <option value="Auto-Rickshaw">Auto-Rickshaw</option>
+                        <option value="Personal Car">Personal Car</option>
+                      </select>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "1rem" }}>
+                      <input type="checkbox" id="womenOnlyCheck" name="womenOnly" style={{ width: "18px", height: "18px" }} />
+                      <label htmlFor="womenOnlyCheck" style={{ fontSize: "0.85rem", fontWeight: "600" }}>Women-Only Pool</label>
+                    </div>
+
+                    <div className="modal-footer" style={{ marginTop: "1.5rem" }}>
+                      <button type="button" className="btn btn-secondary" onClick={() => setIsCreateOpen(false)}>Cancel</button>
+                      <button type="submit" className="btn btn-primary">Publish Ride</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Calculator Modal */}
+          {isCalcOpen && (
+            <div className="modal-overlay" onClick={() => setIsCalcOpen(false)}>
+              <div className="modal-container" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>Fare Split Calculator</h3>
+                  <button className="modal-close-btn" onClick={() => setIsCalcOpen(false)}><XIcon size={18} /></button>
+                </div>
+                <div className="modal-body">
+                  <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>Enter any cab fare to see per-student savings:</p>
+                  <div className="calc-breakdown">
+                    <div className="split-step-box"><span>Solo</span><strong>₹360</strong></div>
+                    <div className="split-step-box"><span>2 People</span><strong>₹180</strong></div>
+                    <div className="split-step-box"><span>3 People</span><strong>₹120</strong></div>
+                    <div className="split-step-box highlight"><span>4 People</span><strong>₹90</strong></div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-primary" onClick={() => setIsCalcOpen(false)}>Done</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Toast */}
+          {toast && (
+            <div className="toast-container">
+              <div className="toast success">
+                <CheckCircleIcon size={18} />
+                <span>{toast}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
