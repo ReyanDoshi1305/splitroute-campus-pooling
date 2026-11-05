@@ -1,4 +1,4 @@
-# 🚗 SplitRoute – Smart Campus Commute & Fare Pooling
+# 🚗 SplitRoute – Smart Campus Commute & Fare Pooling.
 
 > **A problem-solving React web application designed for college students to coordinate daily cab/auto rides, share seats, and split commute fares dynamically.**
 
