@@ -107,3 +107,11 @@ Visit the URL shown in your terminal (usually `http://localhost:5173/`).
 ---
 
 © 2026 SplitRoute – Web Technologies Project.
+---
+
+ 
+
+ 👥 Team Members & Contributors
+* Reyan Doshi - Roll No: `24BIT177` - GitHub: [@ReyanDoshi1305](https://github.com/ReyanDoshi1305)
+* Anoushka Aithal - Roll No: `24BIT147` - GitHub: [@anoushkaaithal](https://github.com/anoushkaaithal)
+* Yesha Makhija - Roll No: `24BIT161` - GitHub: [@yeshamakhija](https://github.com/YeshaMakhija)
